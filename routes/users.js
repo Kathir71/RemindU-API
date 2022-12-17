@@ -17,5 +17,16 @@ router.post("/signup" , (req , res) => {
   })
   res.send("Successfull");
 })
+router.post("/login" , (req , res) => {
+  const {userEmail , userPassword} = req.body;
+  userModel.find().where("userEmail").equals(userEmail).where("userPassword").equals(userPassword).select("_id").then((response) => {
+    if ( response.length == 0){
+      res.send("Invalid");
+    }
+    else {
+      res.send(response)
+    }
+  })
+})
 
 module.exports = router;
