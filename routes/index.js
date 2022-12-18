@@ -9,65 +9,86 @@ router.get("/", function (req, res, next) {
 });
 router.get("/:id", (req, res) => {
   const { id } = req.params;
-  TaskModel.find()
-    .where("user")
-    .equals(id)
-    .select("tasks")
+  userModel
+    .findById(id)
+    .select("userTasks")
     .then((response) => {
-      res.json(response);
+      response.populate("userTasks").then((response) => {
+        res.json(response);
+      });
     });
 });
 router.post("/addTask", (req, res) => {
-  const { userId, taskString } = req.body;
-  console.log(taskString);
-  TaskModel.find({ user: userId }, (err, results) => {
-    console.log(results.length);
-    if (results.length == 0) {
-      let tarr = [taskString];
-      const firstTask = new TaskModel({ user: userId, tasks: ["mytask"] });
-      firstTask.save(() => {
-        console.log("Saved Sucessfully");
+  const { userId, taskString, taskDate } = req.body;
+  let taskDateconverted = new Date(taskDate);
+  let cDate = new Date();
+  console.log(`Converted date is ${taskDateconverted.getTime()}`);
+  console.log(`Converted date string is ${taskDateconverted.toLocaleString()}`);
+  console.log(`Current date is ${cDate.toLocaleString()}`);
+  userModel.findById(userId).then((response) => {
+    let user = response;
+    console.log(user);
+    const newTask = new TaskModel({
+      taskString: taskString,
+      taskDate: taskDateconverted,
+    });
+    newTask.save().then((sresponse) => {
+      let tarr = user.userTasks;
+      console.log(user.userTasks);
+      tarr.push(newTask._id);
+      user.userTasks = tarr;
+      user.save().then((response) => {
+        user.populate({ path: "userTasks" }).then((response) => {
+          console.log(response);
+          res.json(response);
+        });
       });
-    } else {
-      console.log(results);
-      let tarr = [...results[0].tasks, taskString];
-      TaskModel.updateOne({ user: userId }, { $set: { tasks: tarr } }).then(
-        (response) => {
-          console.log("updated successfully");
-        }
-      );
-    }
-    res.send("Addition successfull");
+    });
   });
 });
 router.post("/editTask", (req, res) => {
-  const { userId, oldTask, updatedTask } = req.body;
-  TaskModel.find()
+  const { userId, taskId, updatedTaskString, updatedTaskDate } = req.body;
+  console.log(req.body);
+  userModel
+    .findOne()
     .where("user")
     .equals(userId)
     .then((response) => {
-      let user = response[0];
+      let user = response;
       console.log(user);
-      let tarr = user.tasks.map((str) => {
-        if (str !== oldTask) return str;
-        else return updatedTask;
+      let tarr = user.userTasks.map((element) => {
+        if (element == taskId) {
+          TaskModel.deleteOne().where("_id").equals(taskId);
+          let upTask = new TaskModel({
+            taskString: updatedTaskString,
+            taskDate: updatedTaskDate,
+          });
+          upTask.save();
+          return upTask._id;
+        }
+        return element;
       });
-      user.tasks = tarr;
-      user.save();
-      res.json(user);
+      user.userTasks = tarr;
+      user.save().then((response) => {
+        user.populate("userTasks").then((response) => {
+          res.json(response);
+        });
+      });
     });
 });
-router.post("/deleteTask" , (req,res) => {
-  const {user , targetTask} = req.body;
-  TaskModel.find()
-  .where("user")
-  .equals(user).then((response) => {
-    let user = response[0];
-    let tarr = user.tasks.filter((str) => str !== targetTask);
-    user.tasks = tarr;
-    user.save();
-    res.json(user);
-  })
-
-})
+router.post("/deleteTask", (req, res) => {
+  const { user, taskId } = req.body;
+  userModel.findById(user).then((response) => {
+    let user = response;
+    console.log(user);
+    const tarr = user.userTasks.filter((ele) => ele != taskId);
+    TaskModel.findByIdAndDelete(taskId);
+    user.userTasks = tarr;
+    user.save().then((response) => {
+      response.populate("userTasks").then((r) => {
+        res.json(r);
+      });
+    });
+  });
+});
 module.exports = router;

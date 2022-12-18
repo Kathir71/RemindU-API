@@ -12,10 +12,9 @@ router.post("/signup" , (req , res) => {
   console.log(username);
   console.log(useremail);
   const user = new userModel({userName:username , userEmail:useremail , userPassword:userpasswd});
-  user.save((err) => {
-    console.log(err);
+  user.save().then((response) => {
+    res.send(response);
   })
-  res.send("Successfull");
 })
 router.post("/login" , (req , res) => {
   const {userEmail , userPassword} = req.body;

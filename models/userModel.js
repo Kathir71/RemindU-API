@@ -13,7 +13,8 @@ const userSchema = new Schema (
         userPassword: {
             type:String,
             required:true
-        }
+        },
+        userTasks:[{type:Schema.Types.ObjectId,ref:'tasks'}]
     }
 );
 const userModel = mongoose.model("users" , userSchema);
