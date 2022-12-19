@@ -1,6 +1,7 @@
 const nodemailer = require("nodemailer");
 const mailerfunc = async(props) =>{
-  const { taskString } = props;
+  const { taskString , userEmail } = props;
+  console.log(userEmail);
   const transporter = await nodemailer.createTransport({
     service: "hotmail",
     port: 587,
@@ -12,7 +13,7 @@ const mailerfunc = async(props) =>{
   });
   const options = {
     from: "rmkathir163@outlook.com",
-    to: "rmkathir7@gmail.com",
+    to: userEmail,
     subject: "from nodemailer",
     text: taskString,
   };

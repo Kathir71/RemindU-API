@@ -1,5 +1,2 @@
-let cDate = new Date().toLocaleString();
-let secondsStart = cDate.lastIndexOf(":");
-let spliced = cDate.slice(0,secondsStart);
-console.log(cDate);
-console.log(spliced);
+const mydate = new Date("2022-12-18T13:41:00.000Z");
+console.log(mydate.toLocaleString());

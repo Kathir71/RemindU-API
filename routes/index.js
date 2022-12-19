@@ -29,6 +29,7 @@ router.post("/addTask", (req, res) => {
     let user = response;
     console.log(user);
     const newTask = new TaskModel({
+      userId: userId,
       taskString: taskString,
       taskDate: taskDateconverted,
     });
@@ -48,6 +49,7 @@ router.post("/addTask", (req, res) => {
 });
 router.post("/editTask", (req, res) => {
   const { userId, taskId, updatedTaskString, updatedTaskDate } = req.body;
+  let taskDateconverted = new Date(updatedTaskDate);
   console.log(req.body);
   userModel
     .findOne()
@@ -60,8 +62,9 @@ router.post("/editTask", (req, res) => {
         if (element == taskId) {
           TaskModel.deleteOne().where("_id").equals(taskId);
           let upTask = new TaskModel({
+            userId: userId,
             taskString: updatedTaskString,
-            taskDate: updatedTaskDate,
+            taskDate: taskDateconverted,
           });
           upTask.save();
           return upTask._id;

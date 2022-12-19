@@ -5,6 +5,7 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var mailerfunc = require("./nodemailer");
 const taskModel = require("./models/taskModel");
+const userModel = require("./models/userModel");
 require("dotenv").config();
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -52,19 +53,19 @@ const sendMails = () => {
       let taskDateTime = element.taskDate.toLocaleString();
       taskDateTime = taskDateTime.slice(0, taskDateTime.lastIndexOf(":"));
       if (taskDateTime === cDateTime) {
-        console.log("Task date time matched , Sending the fuckign mail");
-        var options = {
-          from: "rmkathir163@outlook.com",
-          to: "rmkathir7@gmail.com",
-          subject: "from nodemailer",
-          text: element.taskString,
-        };
-        mailerfunc(element);
-        return;
+        const userId = element.userId;
+        userModel
+          .findById(userId)
+          .select("userEmail")
+          .then((response) => {
+            console.log("Task date time matched , Sending the mail");
+            const userEmail = response.userEmail;
+            mailerfunc({taskString:element.taskString , userEmail:userEmail});
+          });
       }
     });
   });
 };
-const mailDaemon = () => setInterval(sendMails, 6000);
+const mailDaemon = () => setInterval(sendMails, 60000);
 mailDaemon();
 module.exports = app;
