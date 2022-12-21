@@ -14,7 +14,7 @@ const mailerfunc = async(props) =>{
   const options = {
     from: "rmkathir163@outlook.com",
     to: userEmail,
-    subject: "from nodemailer",
+    subject: "Reminder from RemindU",
     text: taskString,
   };
   await transporter.sendMail(options, (err, info) => {

@@ -44,7 +44,9 @@ router.post("/addTask", (req, res) => {
           res.json(response);
         });
       });
-    });
+    }).catch((err) => {
+      res.status(415).json(err.message);
+    })
   });
 });
 router.post("/editTask", (req, res) => {
@@ -75,7 +77,9 @@ router.post("/editTask", (req, res) => {
       user.save().then((response) => {
         user.populate("userTasks").then((response) => {
           res.json(response);
-        });
+        }).catch((err) => {
+          res.status(415).json(err.message);
+        })
       });
     });
 });

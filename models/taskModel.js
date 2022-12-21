@@ -8,7 +8,10 @@ const taskSchema = new Schema ({
     taskString: {
         type:String,
     },
-    taskDate:Date,
+    taskDate:{
+        type:Date,
+        min:Date.now //can't have tasks to the past
+    }
 }
 );
 const taskModel = mongoose.model("tasks" , taskSchema);
