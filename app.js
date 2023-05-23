@@ -34,6 +34,7 @@ app.use(function (req, res, next) {
 
 // error handler
 app.listen(process.env.PORT, () => {
+  console.log("Server started ");
 });
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
@@ -48,11 +49,14 @@ const sendMails = () => {
     const allTasks = response;
     let cDateTime = new Date().toUTCString();
     cDateTime = cDateTime.slice(0, cDateTime.lastIndexOf(":"));
+    console.log(cDateTime);
     allTasks.forEach((element) => {
       let taskDateTime = element.taskDate;
       taskDateTime = taskDateTime.slice(0, taskDateTime.lastIndexOf(":"));
+    console.log(taskDateTime);
       if (taskDateTime === cDateTime) {
         const userId = element.userId;
+        console.log("Time matched sending mail");
         userModel
           .findById(userId)
           .select("userEmail")
