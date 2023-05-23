@@ -21,13 +21,13 @@ router.get("/:id", (req, res) => {
 router.post("/addTask", (req, res) => {
   const { userId, taskString, taskDate } = req.body;
   let taskDateconverted = new Date(taskDate);
+  const currentDate = new Date();
+const timezoneOffsetInMinutes = currentDate.getTimezoneOffset();
+const adjustedDate = new Date(currentDate.getTime() - (timezoneOffsetInMinutes * 60000));
+  taskDateconverted = adjustedDate;
   let cDate = new Date();
-  console.log(`Converted date is ${taskDateconverted.getTime()}`);
-  console.log(`Converted date string is ${taskDateconverted.toLocaleString()}`);
-  console.log(`Current date is ${cDate.toLocaleString()}`);
   userModel.findById(userId).then((response) => {
     let user = response;
-    console.log(user);
     const newTask = new TaskModel({
       userId: userId,
       taskString: taskString,
@@ -35,12 +35,10 @@ router.post("/addTask", (req, res) => {
     });
     newTask.save().then((sresponse) => {
       let tarr = user.userTasks;
-      console.log(user.userTasks);
       tarr.push(newTask._id);
       user.userTasks = tarr;
       user.save().then((response) => {
         user.populate({ path: "userTasks" }).then((response) => {
-          console.log(response);
           res.json(response);
         });
       });
@@ -49,26 +47,29 @@ router.post("/addTask", (req, res) => {
     })
   });
 });
-router.post("/editTask", (req, res) => {
+router.post("/editTask", async(req, res) => {
   const { userId, taskId, updatedTaskString, updatedTaskDate } = req.body;
   let taskDateconverted = new Date(updatedTaskDate);
-  console.log(req.body);
+ const currentDate = new Date();
+const timezoneOffsetInMinutes = currentDate.getTimezoneOffset();
+const adjustedDate = new Date(currentDate.getTime() - (timezoneOffsetInMinutes * 60000));
+  taskDateconverted = adjustedDate;
+  
   userModel
     .findOne()
     .where("user")
     .equals(userId)
     .then((response) => {
       let user = response;
-      console.log(user);
-      let tarr = user.userTasks.map((element) => {
+      let tarr = user.userTasks.map(async(element) => {
         if (element == taskId) {
-          TaskModel.deleteOne().where("_id").equals(taskId);
+          await TaskModel.deleteOne().where("_id").equals(taskId);
           let upTask = new TaskModel({
             userId: userId,
             taskString: updatedTaskString,
             taskDate: taskDateconverted,
           });
-          upTask.save();
+          await upTask.save();
           return upTask._id;
         }
         return element;
@@ -85,11 +86,10 @@ router.post("/editTask", (req, res) => {
 });
 router.post("/deleteTask", (req, res) => {
   const { user, taskId } = req.body;
-  userModel.findById(user).then((response) => {
+  userModel.findById(user).then(async(response) => {
     let user = response;
-    console.log(user);
     const tarr = user.userTasks.filter((ele) => ele != taskId);
-    TaskModel.findByIdAndDelete(taskId);
+    await TaskModel.findByIdAndDelete(taskId);
     user.userTasks = tarr;
     user.save().then((response) => {
       response.populate("userTasks").then((r) => {
