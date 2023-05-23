@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 const TaskModel = require("../models/taskModel");
 const userModel = require("../models/userModel");
+const taskModel = require("../models/taskModel");
 /* GET home page. */
 router.get("/", function (req, res, next) {
   res.send("Hello");
@@ -20,18 +21,12 @@ router.get("/:id", (req, res) => {
 });
 router.post("/addTask", (req, res) => {
   const { userId, taskString, taskDate } = req.body;
-  let taskDateconverted = new Date(taskDate);
-  const currentDate = new Date();
-const timezoneOffsetInMinutes = currentDate.getTimezoneOffset();
-const adjustedDate = new Date(currentDate.getTime() - (timezoneOffsetInMinutes * 60000));
-  taskDateconverted = new Date(taskDateconverted.getTime() - (timezoneOffsetInMinutes * 60000));
-  let cDate = new Date();
   userModel.findById(userId).then((response) => {
     let user = response;
     const newTask = new TaskModel({
       userId: userId,
       taskString: taskString,
-      taskDate: taskDateconverted,
+      taskDate: taskDate,
     });
     newTask.save().then((sresponse) => {
       let tarr = user.userTasks;
@@ -49,32 +44,24 @@ const adjustedDate = new Date(currentDate.getTime() - (timezoneOffsetInMinutes *
 });
 router.post("/editTask", async(req, res) => {
   const { userId, taskId, updatedTaskString, updatedTaskDate } = req.body;
-  let taskDateconverted = new Date(updatedTaskDate);
- const currentDate = new Date(updatedTaskDate);
-const timezoneOffsetInMinutes = currentDate.getTimezoneOffset();
-const adjustedDate = new Date(currentDate.getTime() - (timezoneOffsetInMinutes * 60000));
-  taskDateconverted = adjustedDate;
-  
-  userModel
-    .findOne()
-    .where("user")
-    .equals(userId)
-    .then((response) => {
-      let user = response;
-      let tarr = user.userTasks.map(async(element) => {
-        if (element == taskId) {
-          await TaskModel.deleteOne().where("_id").equals(taskId);
-          let upTask = new TaskModel({
-            userId: userId,
-            taskString: updatedTaskString,
-            taskDate: taskDateconverted,
-          });
-          await upTask.save();
-          return upTask._id;
-        }
-        return element;
-      });
-      user.userTasks = tarr;
+  const user = await userModel.findById(userId);
+  const task = await taskModel.findById(taskId);
+  await taskModel.deleteOne().where("_id").equals(taskId);
+  const newTask = new taskModel({
+    userId: userId,
+    taskString: updatedTaskString,
+    taskDate: updatedTaskDate,
+  });
+  const newSavedTask = await newTask.save();
+  const tarr = user.userTasks.map((element) => {
+    if (element == taskId) {
+      return newSavedTask._id;
+    } else {
+      return element;
+    }
+  });
+  user.userTasks = tarr;
+      console.log(tarr);
       user.save().then((response) => {
         user.populate("userTasks").then((response) => {
           res.json(response);
@@ -83,7 +70,6 @@ const adjustedDate = new Date(currentDate.getTime() - (timezoneOffsetInMinutes *
         })
       });
     });
-});
 router.post("/deleteTask", (req, res) => {
   const { user, taskId } = req.body;
   userModel.findById(user).then(async(response) => {

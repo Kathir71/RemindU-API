@@ -9,8 +9,7 @@ const taskSchema = new Schema ({
         type:String,
     },
     taskDate:{
-        type:Date,
-        min:Date.now //can't have tasks to the past
+        type:String,
     }
 }
 );

@@ -9,8 +9,6 @@ router.get("/", function (req, res, next) {
 });
 router.post("/signup", (req, res) => {
   const { username, useremail, userpasswd } = req.body;
-  console.log(username);
-  console.log(useremail);
   const user = new userModel({
     userName: username,
     userEmail: useremail,

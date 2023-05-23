@@ -34,7 +34,6 @@ app.use(function (req, res, next) {
 
 // error handler
 app.listen(process.env.PORT, () => {
-  console.log("hello");
 });
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
@@ -47,10 +46,10 @@ app.use(function (err, req, res, next) {
 const sendMails = () => {
   taskModel.find({}).then((response) => {
     const allTasks = response;
-    let cDateTime = new Date().toLocaleString();
+    let cDateTime = new Date().toUTCString();
     cDateTime = cDateTime.slice(0, cDateTime.lastIndexOf(":"));
     allTasks.forEach((element) => {
-      let taskDateTime = element.taskDate.toLocaleString();
+      let taskDateTime = element.taskDate;
       taskDateTime = taskDateTime.slice(0, taskDateTime.lastIndexOf(":"));
       if (taskDateTime === cDateTime) {
         const userId = element.userId;
@@ -58,7 +57,6 @@ const sendMails = () => {
           .findById(userId)
           .select("userEmail")
           .then((response) => {
-            console.log("Task date time matched , Sending the mail");
             const userEmail = response.userEmail;
             mailerfunc({taskString:element.taskString , userEmail:userEmail});
           });
